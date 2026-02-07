@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Bee - Valentine's Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 5px;
+            color: #000;
+            font-weight: 700;
+            font-family: 'Oswald', 'Arial Black', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        .date {
+            font-size: 2rem;
+            color: #000;
+            font-weight: 300;
+            margin-bottom: 5px;
+            font-family: 'Georgia', serif;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: normal;
+        }
+
+        .input-display {
+            font-size: 2rem;
+            min-height: 60px;
+            margin-bottom: 20px;
+            letter-spacing: 0.2rem;
+            color: #333;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .message {
+            min-height: 30px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .hexagon-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 40px 0;
+            position: relative;
+            height: 250px;
+        }
+
+        .hexagon {
+            width: 92px;
+            height: 80px;
+            background-color: #e0e0e0;
+            position: absolute;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            user-select: none;
+        }
+
+        .hexagon:hover {
+            background-color: #ffd54f;
+            transform: translateX(-50%) scale(1.02);
+        }
+
+        .hexagon:active {
+            transform: translateX(-50%) scale(0.98);
+        }
+
+        .hexagon.center {
+            background-color: #ffd54f;
+            z-index: 2;
+        }
+
+        .hexagon.center:hover {
+            background-color: #ffca28;
+            transform: translateX(-50%) scale(1.02);
+        }
+
+        .hexagon-letter {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        /* Positioning for hexagons - perfectly symmetrical honeycomb with uniform gaps */
+        /* The spacing is calculated so each hexagon is equidistant from all neighbors */
+        /* Center hexagon */
+        .hex-center { top: 82px; left: 50%; transform: translateX(-50%); }
+        
+        /* Top hexagon */
+        .hex-0 { top: 0; left: 50%; transform: translateX(-50%); }
+        
+        /* Upper left and right */
+        .hex-1 { top: 41px; left: calc(50% - 71px); transform: translateX(-50%); }
+        .hex-2 { top: 41px; left: calc(50% + 71px); transform: translateX(-50%); }
+        
+        /* Lower left and right */
+        .hex-3 { top: 123px; left: calc(50% - 71px); transform: translateX(-50%); }
+        .hex-4 { top: 123px; left: calc(50% + 71px); transform: translateX(-50%); }
+        
+        /* Bottom hexagon */
+        .hex-5 { top: 164px; left: 50%; transform: translateX(-50%); }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .delete-btn {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .delete-btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .shuffle-btn {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .shuffle-btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .enter-btn {
+            background-color: #333;
+            color: white;
+        }
+
+        .enter-btn:hover {
+            background-color: #555;
+        }
+
+        /* Victory screen styles */
+        .victory-screen {
+            display: none;
+            animation: fadeIn 0.5s;
+            background-color: #f5e9d5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .victory-screen h1 {
+            font-size: 2 rem;
+            color: #d32f2f;
+            margin-bottom: 10px;
+        }
+
+        .victory-screen .subtitle {
+            font-size: 3 rem;
+            color: #d32f2f;
+            margin-bottom: 30px;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 400;
+        }
+
+        .image-carousel {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .carousel-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .carousel-image.active {
+            opacity: 1;
+        }
+
+        .carousel-controls {
+            display: none;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ccc;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .dot.active {
+            background-color: #d32f2f;
+        }
+
+        .game-screen {
+            display: block;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="victoryAudio" preload="auto">
+        <source src="Elton_John_Your_Song.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="container">
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <h1>Spelling Bee</h1>
+            <p class="date">February 14, 2026</p>
+            <p class="subtitle">Edited by Jackson Pfefferkorn</p>
+            
+            <div class="input-display" id="inputDisplay"></div>
+            <div class="message" id="message"></div>
+
+            <div class="hexagon-container" id="hexContainer">
+                <!-- Hexagons will be generated by JavaScript -->
+            </div>
+
+            <div class="buttons">
+                <button class="delete-btn" onclick="deleteLetter()">Delete</button>
+                <button class="shuffle-btn" onclick="shuffleLetters()">Shuffle</button>
+                <button class="enter-btn" onclick="submitWord()">Enter</button>
+            </div>
+        </div>
+
+        <!-- Victory Screen -->
+        <div class="victory-screen" id="victoryScreen">
+            <h1>Happy Valentine's Day Sweet Girl!</h1>
+            <p class="subtitle">I love you!! ❤️</p>
+            
+            <div class="image-carousel" id="carousel">
+                <!-- Add your images here -->
+                <img src="IMG_2050.JPG" class="carousel-image active" alt="Photo 1">
+                <img src="IMG_0998.JPG" class="carousel-image" alt="Photo 2">
+                <img src="IMG_0482.JPG" class="carousel-image" alt="Photo 3">
+                <img src="BL9A1587.JPG" class="carousel-image" alt="Photo 4">
+                <img src="IMG_8433.jpeg" class="carousel-image" alt="Photo 5">
+                <img src="IMG_6155.jpeg" class="carousel-image" alt="Photo 6">
+                <img src="IMG_6245.jpeg" class="carousel-image" alt="Photo 7">
+                <img src="IMG_7017.jpeg" class="carousel-image" alt="Photo 8">
+                <img src="IMG_7778.jpeg" class="carousel-image" alt="Photo 9">
+                <img src="DSC00975.jpg" class="carousel-image" alt="Photo 10">
+                <img src="IMG_0120.jpeg" class="carousel-image" alt="Photo 11">
+                <img src="IMG_1823.JPEG" class="carousel-image" alt="Photo 12">
+                <img src="IMG_2442.jpeg" class="carousel-image" alt="Photo 13">
+                <img src="IMG_2712.jpeg" class="carousel-image" alt="Photo 14">
+                <img src="lp_image.jpeg" class="carousel-image" alt="Photo 15">
+            </div>
+            
+            <div class="carousel-dots" id="carouselDots">
+                <!-- Dots will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const centerLetter = 'E';
+        const outerLetters = ['V', 'A', 'L', 'N', 'T', 'I'];
+        let currentWord = '';
+        let shuffledLetters = [...outerLetters];
+
+        function initGame() {
+            shuffleLetters();
+        }
+
+        function createHexagons() {
+            const container = document.getElementById('hexContainer');
+            container.innerHTML = '';
+
+            // Create center hexagon
+            const centerHex = createHexagon(centerLetter, true, 'center');
+            container.appendChild(centerHex);
+
+            // Create outer hexagons in hexagon formation
+            const positions = [0, 1, 2, 3, 4, 5];
+            shuffledLetters.forEach((letter, index) => {
+                const hex = createHexagon(letter, false, positions[index]);
+                container.appendChild(hex);
+            });
+        }
+
+        function createHexagon(letter, isCenter, position) {
+            const hex = document.createElement('div');
+            hex.className = `hexagon ${isCenter ? 'center' : ''} hex-${position}`;
+            hex.innerHTML = `<span class="hexagon-letter">${letter}</span>`;
+            hex.onclick = () => addLetter(letter);
+            return hex;
+        }
+
+        function addLetter(letter) {
+            currentWord += letter;
+            updateDisplay();
+        }
+
+        function deleteLetter() {
+            currentWord = currentWord.slice(0, -1);
+            updateDisplay();
+        }
+
+        function shuffleLetters() {
+            // Fisher-Yates shuffle
+            for (let i = shuffledLetters.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledLetters[i], shuffledLetters[j]] = [shuffledLetters[j], shuffledLetters[i]];
+            }
+            createHexagons();
+        }
+
+        function updateDisplay() {
+            document.getElementById('inputDisplay').textContent = currentWord || '';
+        }
+
+        function submitWord() {
+            const message = document.getElementById('message');
+            
+            if (currentWord.length === 0) {
+                message.textContent = 'Type or click letters';
+                setTimeout(() => message.textContent = '', 2000);
+                return;
+            }
+
+            if (currentWord.toUpperCase() === 'VALENTINE') {
+                showVictoryScreen();
+            } else {
+                message.textContent = 'Try again!';
+                setTimeout(() => message.textContent = '', 2000);
+                currentWord = '';
+                updateDisplay();
+            }
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('victoryScreen').style.display === 'block') return;
+
+            const key = e.key.toUpperCase();
+            const allLetters = [centerLetter, ...outerLetters];
+            
+            if (allLetters.includes(key)) {
+                addLetter(key);
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                deleteLetter();
+            } else if (e.key === 'Enter') {
+                submitWord();
+            }
+        });
+
+        // Initialize game
+        initGame();
+
+        // Carousel functionality
+        let currentImageIndex = 0;
+        const images = document.querySelectorAll('.carousel-image');
+
+        function initCarousel() {
+            const dotsContainer = document.getElementById('carouselDots');
+            images.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = `dot ${index === 0 ? 'active' : ''}`;
+                dot.onclick = () => goToImage(index);
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        function updateCarousel() {
+            images.forEach((img, index) => {
+                img.classList.toggle('active', index === currentImageIndex);
+            });
+            
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentImageIndex);
+            });
+        }
+
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            updateCarousel();
+        }
+
+        function previousImage() {
+            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+            updateCarousel();
+        }
+
+        function goToImage(index) {
+            currentImageIndex = index;
+            updateCarousel();
+        }
+
+        // Auto-advance carousel every 3 seconds
+        let autoAdvance;
+        function startAutoAdvance() {
+            autoAdvance = setInterval(nextImage, 3000);
+        }
+
+        function stopAutoAdvance() {
+            clearInterval(autoAdvance);
+        }
+
+        // Initialize carousel when victory screen shows
+        function showVictoryScreen() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('victoryScreen').style.display = 'block';
+            document.body.style.backgroundColor = '#f5e9d5';  
+            initCarousel();
+            startAutoAdvance();
+
+            // Play audio
+            const audio = document.getElementById('victoryAudio');
+            audio.play();
+        }
+    </script>
+</body>
+</html>
